@@ -1,0 +1,10 @@
+Feature,IQR_Outlier_Count,ModZ_Outlier_Count,Identical_Set
+RBC,8,1,False
+PCV,5,2,False
+MCV,23,16,False
+MCH,19,10,False
+MCHC,22,6,False
+RDW,21,16,False
+WBC,27,24,False
+PLT,12,5,False
+HGB,6,3,False
