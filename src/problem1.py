@@ -37,47 +37,60 @@ print("PROBLEM 1: DATA ANOMALIES & STATISTICAL IMPUTATION ANALYSIS")
 print("=" * 65)
 
 # -------------------------------------------------------------------------
-# PART (a): Missingness Mechanism Analysis (MCAR vs MAR) & Little's Test
+# PART (a): Comprehensive All-vs-All MAR Pairwise Association Test
 # -------------------------------------------------------------------------
-print("\n--- Part (a): Missingness Analysis (MCAR vs MAR) ---")
-missing_counts = df[CBC_COLS].isnull().sum()
-print("Missing counts per feature:")
-print(missing_counts)
+print("\n--- Part (a): Comprehensive Missingness Analysis (MCAR vs MAR) ---")
 
-# Little's MCAR Statistical Test using pyampute
-print("\nExecuting Little's MCAR Test via pyampute...")
+# 1. Little's MCAR Test across all 9 features
 mcar_test = MCARTest(method="little")
 try:
-    p_value = mcar_test.little_mcar_test(df[CBC_COLS])
-    print(f"Little's MCAR test p-value: {p_value:.4e}")
-
-    if p_value < 0.05:
-        print("Decision: Reject MCAR (p < 0.05) -> Missingness is likely NOT Missing Completely At Random.")
+    p_val_little = mcar_test.little_mcar_test(df[CBC_COLS])
+    print(f"Little's MCAR Test p-value: {p_val_little:.4e}")
+    if p_val_little < 0.05:
+        print("Decision: Reject MCAR (p < 0.05) -> Data missingness is MAR/MNAR.")
     else:
-        print("Decision: Fail to reject MCAR (p >= 0.05) -> Missingness is consistent with MCAR.")
+        print("Decision: Fail to reject MCAR.")
 except Exception as e:
-    print(f"Note on Little's MCAR test: {e}")
+    print(f"Little's test warning: {e}")
 
-# Pairwise feature association check for MAR mechanism
-missing_hgb_mask = df['HGB'].isnull()
-p_values = {}
+# 2. Pairwise t-tests across ALL missing features vs remaining features
+all_associations = []
 
-for col in CBC_COLS:
-    if col == 'HGB':
-        continue
-    grp_present = df.loc[~missing_hgb_mask, col].dropna()
-    grp_missing = df.loc[missing_hgb_mask, col].dropna()
+# Find all features that have missing values
+missing_features = [col for col in CBC_COLS if df[col].isnull().sum() > 0]
+
+for target_col in missing_features:
+    missing_mask = df[target_col].isnull()
     
-    if len(grp_missing) > 1 and len(grp_present) > 1:
-        stat, p_val = stats.ttest_ind(grp_present, grp_missing, equal_var=False)
-        p_values[col] = p_val
-        print(f"Welch's t-test for {col} given HGB missingness: p = {p_val:.4e}")
+    for eval_col in CBC_COLS:
+        if target_col == eval_col:
+            continue
+            
+        grp_present = df.loc[~missing_mask, eval_col].dropna()
+        grp_missing = df.loc[missing_mask, eval_col].dropna()
+        
+        if len(grp_missing) > 1 and len(grp_present) > 1:
+            stat, p_val = stats.ttest_ind(grp_present, grp_missing, equal_var=False)
+            all_associations.append({
+                'Missing_Feature': target_col,
+                'Associated_Feature': eval_col,
+                't_statistic': stat,
+                'p_value': p_val
+            })
 
-if p_values:
-    most_associated = min(p_values, key=p_values.get)
-    print(f"\nConclusion (a): The dataset exhibits MAR (Missing At Random) characteristics.")
-    print(f"HGB missingness is most strongly associated with CBC feature: '{most_associated}'.")
+# Convert to DataFrame and sort by p-value
+assoc_df = pd.DataFrame(all_associations).sort_values('p_value')
+assoc_df.to_csv(f"{TABLES_DIR}/problem1_mar_associations.csv", index=False)
 
+print("\nTop 5 Strongest MAR Associations Across All Feature Pairs:")
+print(assoc_df.head().to_string(index=False))
+
+if not assoc_df.empty:
+    top = assoc_df.iloc[0]
+    print(f"\nConclusion for Part (a):")
+    print(f"Missingness in '{top['Missing_Feature']}' is most strongly associated "
+          f"with observed values of '{top['Associated_Feature']}' (p = {top['p_value']:.4e}).")
+          
 # -------------------------------------------------------------------------
 # PART (b): Outlier Identification (IQR Fencing vs Modified Z-Scores)
 # -------------------------------------------------------------------------
