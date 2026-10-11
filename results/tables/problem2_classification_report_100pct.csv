@@ -1,0 +1,6 @@
+,precision,recall,f1-score,support
+Non-Smoker,0.979,0.9662,0.9726,1064.0
+Smoker,0.875,0.9197,0.8968,274.0
+accuracy,0.9567,0.9567,0.9567,0.9567
+macro avg,0.927,0.9429,0.9347,1338.0
+weighted avg,0.9577,0.9567,0.957,1338.0
