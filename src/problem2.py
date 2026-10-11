@@ -25,82 +25,107 @@ print("PROBLEM 2: LINEAR & LOGISTIC REGRESSION ANALYSIS")
 print("=" * 65)
 
 # -------------------------------------------------------------------------
-# PART (a): Two-Panel Scatter Plot with Linear Regression Fits
+# PART (a): Two-Panel Scatter Plot with Grouped Linear Regression Fits
 # -------------------------------------------------------------------------
-print("\n--- Part (a): Linear Regression (Age & BMI vs Hospital Charges) ---")
+print("\n--- Part (a): Grouped Linear Regression (Smoker vs Non-Smoker) ---")
 
 sns.set_theme(style="whitegrid")
-fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
-# Define smoker colors
 hue_colors = {'yes': 'crimson', 'no': 'royalblue'}
+smoker_df = df[df['smoker'] == 'yes']
+non_smoker_df = df[df['smoker'] == 'no']
 
-# 1. Subplot 1: Age vs Charges
+# Helper function to fit OLS and return fit line data
+def fit_ols_group(data, x_col, y_col='charges'):
+    X = sm.add_constant(data[x_col])
+    model = sm.OLS(data[y_col], X).fit()
+    intercept, slope = model.params['const'], model.params[x_col]
+    r2 = model.rsquared
+    x_grid = np.linspace(data[x_col].min(), data[x_col].max(), 100)
+    y_grid = intercept + slope * x_grid
+    return slope, intercept, r2, x_grid, y_grid
+
+# -------------------------------------------------------------------------
+# Subplot 1: Age vs Charges
+# -------------------------------------------------------------------------
 sns.scatterplot(
     data=df, x='age', y='charges', hue='smoker', palette=hue_colors,
     alpha=0.6, ax=axes[0]
 )
 
-# Linear regression for Age vs Charges
-X_age = sm.add_constant(df['age'])
-model_age = sm.OLS(df['charges'], X_age).fit()
-intercept_age, slope_age = model_age.params['const'], model_age.params['age']
+# Fits for Age
+slope_age_s, int_age_s, r2_age_s, x_grid_a_s, y_grid_a_s = fit_ols_group(smoker_df, 'age')
+slope_age_ns, int_age_ns, r2_age_ns, x_grid_a_ns, y_grid_a_ns = fit_ols_group(non_smoker_df, 'age')
 
-# Add regression line
-age_grid = np.linspace(df['age'].min(), df['age'].max(), 100)
-axes[0].plot(age_grid, intercept_age + slope_age * age_grid, color='black', linestyle='--', linewidth=2,
-             label=f'Fit: Y = {slope_age:.2f}X + {intercept_age:.2f}\n(R² = {model_age.rsquared:.3f})')
+# Plot regression lines
+axes[0].plot(x_grid_a_s, y_grid_a_s, color='darkred', linestyle='--', linewidth=2.5,
+             label=f'Smoker Fit: Y = {slope_age_s:.2f}X + {int_age_s:.2f} (R² = {r2_age_s:.3f})')
+axes[0].plot(x_grid_a_ns, y_grid_a_ns, color='darkblue', linestyle='--', linewidth=2.5,
+             label=f'Non-Smoker Fit: Y = {slope_age_ns:.2f}X + {int_age_ns:.2f} (R² = {r2_age_ns:.3f})')
 
 axes[0].set_title("Age vs. Hospital Charges", fontsize=12, fontweight='bold')
 axes[0].set_xlabel("Age (years)", fontsize=11)
 axes[0].set_ylabel("Hospital Charges ($)", fontsize=11)
-axes[0].legend(title="Smoker", frameon=True)
+axes[0].legend(title="Group & Linear Fit", frameon=True, fontsize=9)
 
-print(f"Age vs Charges Fit Params: Slope = {slope_age:.4f}, Intercept = {intercept_age:.4f}, R² = {model_age.rsquared:.4f}")
+print("Age vs Charges Regressions:")
+print(f"  Smokers:     Slope = {slope_age_s:.4f}, Intercept = {int_age_s:.4f}, R² = {r2_age_s:.4f}")
+print(f"  Non-Smokers: Slope = {slope_age_ns:.4f}, Intercept = {int_age_ns:.4f}, R² = {r2_age_ns:.4f}")
 
-# 2. Subplot 2: BMI vs Charges
+# -------------------------------------------------------------------------
+# Subplot 2: BMI vs Charges
+# -------------------------------------------------------------------------
 sns.scatterplot(
     data=df, x='bmi', y='charges', hue='smoker', palette=hue_colors,
     alpha=0.6, ax=axes[1]
 )
 
-# Linear regression for BMI vs Charges
-X_bmi = sm.add_constant(df['bmi'])
-model_bmi = sm.OLS(df['charges'], X_bmi).fit()
-intercept_bmi, slope_bmi = model_bmi.params['const'], model_bmi.params['bmi']
+# Fits for BMI
+slope_bmi_s, int_bmi_s, r2_bmi_s, x_grid_b_s, y_grid_b_s = fit_ols_group(smoker_df, 'bmi')
+slope_bmi_ns, int_bmi_ns, r2_bmi_ns, x_grid_b_ns, y_grid_b_ns = fit_ols_group(non_smoker_df, 'bmi')
 
-# Add regression line
-bmi_grid = np.linspace(df['bmi'].min(), df['bmi'].max(), 100)
-axes[1].plot(bmi_grid, intercept_bmi + slope_bmi * bmi_grid, color='black', linestyle='--', linewidth=2,
-             label=f'Fit: Y = {slope_bmi:.2f}X + {intercept_bmi:.2f}\n(R² = {model_bmi.rsquared:.3f})')
+# Plot regression lines
+axes[1].plot(x_grid_b_s, y_grid_b_s, color='darkred', linestyle='--', linewidth=2.5,
+             label=f'Smoker Fit: Y = {slope_bmi_s:.2f}X + {int_bmi_s:.2f} (R² = {r2_bmi_s:.3f})')
+axes[1].plot(x_grid_b_ns, y_grid_b_ns, color='darkblue', linestyle='--', linewidth=2.5,
+             label=f'Non-Smoker Fit: Y = {slope_bmi_ns:.2f}X + {int_bmi_ns:.2f} (R² = {r2_bmi_ns:.3f})')
 
 axes[1].set_title("BMI vs. Hospital Charges", fontsize=12, fontweight='bold')
 axes[1].set_xlabel("Body Mass Index (BMI)", fontsize=11)
 axes[1].set_ylabel("Hospital Charges ($)", fontsize=11)
-axes[1].legend(title="Smoker", frameon=True)
+axes[1].legend(title="Group & Linear Fit", frameon=True, fontsize=9)
 
-print(f"BMI vs Charges Fit Params: Slope = {slope_bmi:.4f}, Intercept = {intercept_bmi:.4f}, R² = {model_bmi.rsquared:.4f}")
+print("\nBMI vs Charges Regressions:")
+print(f"  Smokers:     Slope = {slope_bmi_s:.4f}, Intercept = {int_bmi_s:.4f}, R² = {r2_bmi_s:.4f}")
+print(f"  Non-Smokers: Slope = {slope_bmi_ns:.4f}, Intercept = {int_bmi_ns:.4f}, R² = {r2_bmi_ns:.4f}")
 
-plt.suptitle("Problem 2(a): Patient Age and BMI vs Hospital Charges by Smoker Status", fontsize=14, fontweight='bold')
+plt.suptitle("Problem 2(a): Patient Age and BMI vs Hospital Charges with Grouped Regression Lines", fontsize=14, fontweight='bold')
 plt.tight_layout()
 
+# Save figure file
 fig_path = f"{FIGURES_DIR}/problem2_scatter_regressions.png"
 plt.savefig(fig_path, dpi=300)
-plt.close()
+
+# Display inline in Google Colab output cell
+plt.show()
+
 print(f"Two-panel scatter plot saved to: {fig_path}")
+
+print("\nConclusion (2a):")
+print("- The bimodal distribution in medical hospital charges is primarily driven by smoking status and compounded by the BMI >= 30 obesity threshold.")
+print("- Within smokers, non-obese individuals (BMI < 30) fall in the intermediate charge range ($15,000–$30,000), while obese smokers (BMI ≥ 30) occupy the high-charge range (>$30,000) due to greater cardiovascular, respiratory, and/or metabolic risks.")
+
 
 # -------------------------------------------------------------------------
 # PART (b): Logistic Regression Predicting Smoker Status
 # -------------------------------------------------------------------------
 print("\n--- Part (b): Logistic Regression (Predicting Smoker Status) ---")
 
-# Feature matrix X and target y
 X = df[['age', 'bmi', 'charges']]
 y = (df['smoker'] == 'yes').astype(int)  # 1 = smoker, 0 = non-smoker
 
-# -------------------------------------------------------------------------
-# Case 1: Training and Testing on the Same Data (100% / 100%)
-# -------------------------------------------------------------------------
+# Case 1: Same Data (100% / 100%)
 print("\n[Case 1]: Training and Testing on FULL Dataset (100% / 100%)")
 clf_same = LogisticRegression(random_state=10, max_iter=1000)
 clf_same.fit(X, y)
@@ -116,9 +141,7 @@ print("\nClassification Report:")
 print(cr_same)
 print(f"Overall Accuracy (Same Data): {acc_same * 100:.2f}%")
 
-# -------------------------------------------------------------------------
 # Case 2: 75% Train / 25% Test Split (random_state=10)
-# -------------------------------------------------------------------------
 print("\n[Case 2]: Train on 75% / Test on 25% Split (random_state=10)")
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=10, stratify=y)
 
