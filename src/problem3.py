@@ -101,3 +101,11 @@ plt.savefig(fig_path, dpi=300)
 plt.show()
 
 print(f"Plot saved to: {fig_path}")
+
+print("""
+The confusion matrices for (i)–(iv) are very similar, as the dataset clearly distinguishes
+ between the classes. Adding L_1, L_2, or Elastic Net regularization at C=1.0 slightly 
+ reduces the feature coefficients, causing one borderline Regular Sleep patient to be 
+ misclassified as Sleep Apnea and lowering accuracy by 1.06%. The benefit can be high 
+ with reduced model complexity and overfitting. 
+""")

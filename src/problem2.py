@@ -232,3 +232,16 @@ print(f"Classification report (Case 1) saved to: {table_same_path} (4 sig figs)"
 print(f"Classification report (Case 2) saved to: {table_split_path} (4 sig figs)")
 
 print("=" * 65)
+
+print("""
+Case 1 showed an accuracy of 95.67% while Case 2 showed 95.52% accuracy. 
+Because the test set contains subtle variations in feature distributions 
+that the optimizer never saw during training in Case 2, performance is 
+expected to be lower or reflect true statistical variance. 
+Generally, we should expect several % point accuracy differences between 
+the two cases. However, in this scenario, the predictor space—particularly 
+charges combined with BMI—provides a stark, clear gap between smokers and 
+non-smokers. The decision boundary is so robustly defined by the bulk of the data 
+that moving from 100% training data (N=1338) to 75% training data (N=1003) 
+barely shifts the fitted hyperplane coefficients.
+""")

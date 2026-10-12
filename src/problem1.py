@@ -237,3 +237,11 @@ plt.close()
 
 print(f"Scatter plot saved to: {scatter_fig_path}")
 print("=" * 65)
+
+print("\nConclusion (c):")
+print("""
+Multivariate algorithms (MICE and kNN) achieved significantly lower MAE scores
+compared to univariate baselines (Mean and Median) because they explicitly leverage
+the observed covariance between HGB and other CBC parameters (such as MCHC), 
+directly aligning with the data's MAR mechanism.
+""")
